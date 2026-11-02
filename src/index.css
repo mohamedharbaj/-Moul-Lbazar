@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-walnut: #3B2921;
+    --color-gold: #B08A45;
+    --color-gold-light: #D4AF37;
+    --color-ivory: #F5EFE3;
+    --color-sand: #D9C8A9;
+    --color-copper: #A7653D;
+    --color-charcoal: #292521;
+    --color-wa: #25D366;
+  }
+
+  body {
+    font-family: 'Tajawal', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  h1, h2, h3, .font-heritage {
+    font-family: 'Amiri', 'Tajawal', serif;
+  }
+
+  .font-latin-luxury {
+    font-family: 'Cinzel', serif;
+  }
+}
+
+/* Moroccan arabesque subtle geometric background */
+.moroccan-pattern {
+  background-color: #F5EFE3;
+  background-image: radial-gradient(#B08A45 0.75px, transparent 0.75px), radial-gradient(#3B2921 0.75px, #F5EFE3 0.75px);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+  background-opacity: 0.05;
+}
+
+.moroccan-pattern-dark {
+  background-color: #2D1E18;
+  background-image: radial-gradient(rgba(176, 138, 69, 0.15) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Subtle vintage parchment effect */
+.parchment-border {
+  border: 1px solid rgba(176, 138, 69, 0.35);
+  box-shadow: 0 4px 20px -2px rgba(59, 41, 33, 0.08), inset 0 0 30px rgba(176, 138, 69, 0.04);
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #B08A45 0%, #D4AF37 50%, #8C6B2D 100%);
+}
+
+.gold-text-gradient {
+  background: linear-gradient(135deg, #D4AF37 0%, #B08A45 50%, #FFE699 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F5EFE3;
+}
+::-webkit-scrollbar-thumb {
+  background: #B08A45;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8C6B2D;
+}

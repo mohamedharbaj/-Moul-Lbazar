@@ -1,0 +1,6 @@
+{
+  "name": "Moul LBazar | مول البزار",
+  "description": "الموقع الرسمي لمول البزار - متخصصون في شراء التحف والمقتنيات القديمة والقطع النادرة في المغرب وخارجه. تقييم صادق وأداء فوري.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
