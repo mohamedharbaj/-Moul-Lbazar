@@ -2,12 +2,6 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 
-// تعطيل المؤثرات اللي كتوقف الرسم فـ بعض التليفونات
-const fixStyle = document.createElement('style');
-fixStyle.textContent =
-  '*,*::before,*::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;}';
-document.head.appendChild(fixStyle);
-
 const rootElement = document.getElementById('root');
 
 if (!rootElement) {
@@ -73,35 +67,34 @@ import('./App')
     root.render(errorBox('IMPORT ERROR (خطأ أثناء تحميل الكود):', err));
   });
 
-// DEBUG: معلومات عن العنصر اللي فوق الشاشة (بعد 6 ثواني)
+// DEBUG3: مواقع العناصر (بعد 6 ثواني)
 setTimeout(() => {
-  const pick = (x: number, y: number) => {
-    const el = document.elementFromPoint(x, y) as HTMLElement | null;
+  const r = (el: Element | null) => {
     if (!el) return 'none';
-    const cs = getComputedStyle(el);
+    const b = el.getBoundingClientRect();
     return (
-      el.tagName +
-      ' | ' +
-      String(el.className).slice(0, 60) +
-      ' | bg ' +
-      cs.backgroundColor +
-      ' | pos ' +
-      cs.position
+      'x' + Math.round(b.left) + ' y' + Math.round(b.top) +
+      ' w' + Math.round(b.width) + ' h' + Math.round(b.height)
     );
   };
   const w = window.innerWidth;
   const h = window.innerHeight;
-  const header = document.querySelector('header');
-  const hcs = header ? getComputedStyle(header) : null;
+  const stack = document
+    .elementsFromPoint(w / 2, h / 2)
+    .map((e) => e.tagName)
+    .join(',');
   alert(
-    'DEBUG2\n' +
-      'top: ' + pick(w / 2, 20) + '\n' +
-      'mid: ' + pick(w / 2, h / 2) + '\n' +
-      'header bg: ' + (hcs ? hcs.backgroundColor : '-') + '\n' +
-      'header pos: ' + (hcs ? hcs.position : '-') + '\n' +
-      'hero bg: ' +
-      (document.getElementById('home')
-        ? getComputedStyle(document.getElementById('home') as HTMLElement).backgroundColor
-        : '-')
+    'DEBUG3\n' +
+      'inner: ' + w + 'x' + h + ' dpr ' + window.devicePixelRatio + '\n' +
+      'html client: ' + document.documentElement.clientWidth + 'x' + document.documentElement.clientHeight + '\n' +
+      'html scroll: ' + document.documentElement.scrollWidth + 'x' + document.documentElement.scrollHeight + '\n' +
+      'vv scale: ' + (window.visualViewport ? window.visualViewport.scale : '-') + '\n' +
+      'body: ' + r(document.body) + '\n' +
+      'root child: ' + r(document.getElementById('root')?.firstElementChild || null) + '\n' +
+      'header: ' + r(document.querySelector('header')) + '\n' +
+      'hero: ' + r(document.getElementById('home')) + '\n' +
+      'stack: ' + stack + '\n' +
+      'fonts: ' + document.fonts.status + '\n' +
+      'dir: ' + document.documentElement.dir
   );
 }, 6000);
