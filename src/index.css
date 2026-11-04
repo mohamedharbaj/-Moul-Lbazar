@@ -61,6 +61,13 @@ html {
   scroll-behavior: smooth;
 }
 
+/* منع أي تمرير أفقي */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
