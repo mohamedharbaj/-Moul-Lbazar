@@ -2,6 +2,11 @@ export type Language = 'ar' | 'fr';
 
 export type SubmissionStatus = 'pending' | 'reviewed' | 'approved' | 'purchased' | 'rejected';
 
+export interface SubmissionPhoto {
+  url: string;
+  publicId: string;
+}
+
 export interface AntiqueSubmission {
   id: string;
   referenceCode: string;
@@ -12,9 +17,10 @@ export interface AntiqueSubmission {
   categoryTitle: string;
   description: string;
   expectedPrice?: string;
-  photos: string[]; // Base64 data URLs or remote storage URLs
+  photos: SubmissionPhoto[];
   status: SubmissionStatus;
   createdAt: number;
+  expiresAt: number; // Expiration timestamp (createdAt + 7 days)
   adminNotes?: string;
 }
 

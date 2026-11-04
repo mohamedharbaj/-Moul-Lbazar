@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { StorageService } from '../services/storageService';
+import { CloudinaryService, CLOUDINARY_CONFIG } from '../services/cloudinaryService';
+import { isFirebaseConfigured } from '../services/firebase';
 import { CATEGORIES_DATA, MOROCCAN_CITIES, OFFICIAL_CONTACT } from '../translations';
 import { AntiqueSubmission } from '../types';
 import {
@@ -8,16 +10,20 @@ import {
   CheckCircle2,
   AlertCircle,
   X,
-  Image as ImageIcon,
   MessageCircle,
   Sparkles,
-  ShieldCheck,
   Lock,
 } from 'lucide-react';
 
 interface SubmitItemSectionProps {
   initialCategoryId?: string;
   onSubmissionSuccess?: (sub: AntiqueSubmission) => void;
+}
+
+interface LocalPhotoItem {
+  id: string;
+  file: File;
+  previewUrl: string;
 }
 
 export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
@@ -35,22 +41,29 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
   const [description, setDescription] = useState('');
   const [expectedPrice, setExpectedPrice] = useState('');
 
-  // Photos: stored as base64 data URLs
-  const [photos, setPhotos] = useState<string[]>([]);
+  // Selected local files for upload
+  const [selectedPhotos, setSelectedPhotos] = useState<LocalPhotoItem[]>([]);
   const [photoError, setPhotoError] = useState<string | null>(null);
 
   // Loading & Submission states
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadStatusText, setUploadStatusText] = useState<string>('');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submittedData, setSubmittedData] = useState<AntiqueSubmission | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Update category when prop changes
   React.useEffect(() => {
     if (initialCategoryId) {
       setCategoryId(initialCategoryId);
     }
   }, [initialCategoryId]);
+
+  // Clean up object URLs on unmount
+  React.useEffect(() => {
+    return () => {
+      selectedPhotos.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+    };
+  }, [selectedPhotos]);
 
   // Moroccan phone number validation: 06..., 07..., 05..., or +212...
   const validatePhone = (number: string): boolean => {
@@ -59,19 +72,17 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
     return moroccoRegex.test(cleaned);
   };
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPhotoError(null);
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-    const maxSizeBytes = 10 * 1024 * 1024; // 10MB per file
+    const newItems: LocalPhotoItem[] = [];
 
-    const newPhotos: string[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
 
-      if (!allowedTypes.includes(file.type)) {
+      if (!CLOUDINARY_CONFIG.allowedTypes.includes(file.type)) {
         setPhotoError(
           isRtl
             ? `نوع الملف "${file.name}" غير مدعوم. المرجو اختيار صور بصيغة JPG أو PNG أو WebP.`
@@ -80,7 +91,7 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
         continue;
       }
 
-      if (file.size > maxSizeBytes) {
+      if (file.size > CLOUDINARY_CONFIG.maxSizeBytes) {
         setPhotoError(
           isRtl
             ? `حجم الصورة "${file.name}" كبير جداً (أكبر من 10 ميغابايت).`
@@ -89,16 +100,15 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
         continue;
       }
 
-      try {
-        const processed = await StorageService.processImageFile(file);
-        newPhotos.push(processed);
-      } catch (err) {
-        console.error('Error processing image:', err);
-      }
+      newItems.push({
+        id: Math.random().toString(36).substring(2, 9),
+        file,
+        previewUrl: URL.createObjectURL(file),
+      });
     }
 
-    if (newPhotos.length > 0) {
-      setPhotos((prev) => [...prev, ...newPhotos]);
+    if (newItems.length > 0) {
+      setSelectedPhotos((prev) => [...prev, ...newItems]);
     }
 
     if (fileInputRef.current) {
@@ -106,8 +116,14 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
     }
   };
 
-  const removePhoto = (index: number) => {
-    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  const removePhoto = (id: string) => {
+    setSelectedPhotos((prev) => {
+      const item = prev.find((p) => p.id === id);
+      if (item) {
+        URL.revokeObjectURL(item.previewUrl);
+      }
+      return prev.filter((p) => p.id !== id);
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -137,7 +153,7 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
       errors.description = t.submitSection.validation.descRequired;
     }
 
-    if (photos.length === 0) {
+    if (selectedPhotos.length === 0) {
       errors.photos = t.submitSection.validation.photosRequired;
     }
 
@@ -146,10 +162,41 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
       return;
     }
 
+    // Check Firebase configuration
+    if (!isFirebaseConfigured()) {
+      setSubmitError(
+        isRtl
+          ? 'تعذر إرسال الطلب: لم يتم ضبط إعدادات Firebase بعد. يرجى تزويد المتغير VITE_FIREBASE_API_KEY.'
+          : 'Impossible d\'envoyer : Firebase n\'est pas configuré. Veuillez définir VITE_FIREBASE_API_KEY.'
+      );
+      return;
+    }
+
     setFormErrors({});
     setIsSubmitting(true);
+    setUploadStatusText(
+      isRtl ? 'جارٍ رفع الصور إلى Cloudinary...' : 'Téléversement des photos vers Cloudinary...'
+    );
 
     try {
+      // 1. Upload files to Cloudinary using unsigned preset
+      const filesToUpload = selectedPhotos.map((p) => p.file);
+      const uploadedPhotos = await CloudinaryService.uploadMultipleImages(
+        filesToUpload,
+        (completed, total) => {
+          setUploadStatusText(
+            isRtl
+              ? `جارٍ رفع الصور (${completed}/${total})...`
+              : `Téléversement des images (${completed}/${total})...`
+          );
+        }
+      );
+
+      // 2. Save submission in Firestore
+      setUploadStatusText(
+        isRtl ? 'جارٍ حفظ تفاصيل الطلب في Firestore...' : 'Enregistrement de la proposition...'
+      );
+
       const selectedCat = CATEGORIES_DATA.find((c) => c.id === categoryId);
       const catTitle = selectedCat
         ? lang === 'ar'
@@ -165,7 +212,7 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
         categoryTitle: catTitle,
         description: description.trim(),
         expectedPrice: expectedPrice.trim() || undefined,
-        photos,
+        photos: uploadedPhotos,
       });
 
       setSubmittedData(newSubmission);
@@ -173,23 +220,26 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
         onSubmissionSuccess(newSubmission);
       }
 
-      // Reset form fields
+      // Cleanup preview URLs and reset fields
+      selectedPhotos.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+      setSelectedPhotos([]);
       setFullName('');
       setCity('');
       setPhone('');
       setCategoryId('');
       setDescription('');
       setExpectedPrice('');
-      setPhotos([]);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Submission failed:', err);
       setSubmitError(
-        isRtl
-          ? 'حدث خطأ أثناء حفظ طلبك. المرجو المحاولة مرة أخرى أو مراسلتنا مباشرة عبر واتساب.'
-          : 'Une erreur est survenue lors de l\'enregistrement. Veuillez réessayer ou nous contacter sur WhatsApp.'
+        err?.message ||
+          (isRtl
+            ? 'حدث خطأ أثناء معالجة طلبك وحفظه. يرجى التأكد من اتصال الإنترنت والمحاولة مرة أخرى.'
+            : 'Une erreur est survenue lors de l\'enregistrement de votre demande.')
       );
     } finally {
       setIsSubmitting(false);
+      setUploadStatusText('');
     }
   };
 
@@ -223,9 +273,12 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
         {/* Main Form Box */}
         <div className="max-w-3xl mx-auto bg-[#3B2921]/95 rounded-2xl p-6 sm:p-10 border-2 border-[#B08A45]/40 shadow-2xl relative">
           {submitError && (
-            <div className="mb-6 p-4 rounded-xl bg-red-950/80 border border-red-500/50 text-red-200 text-sm flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
-              <span>{submitError}</span>
+            <div className="mb-6 p-4 rounded-xl bg-red-950/80 border border-red-500/50 text-red-200 text-sm flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold">{isRtl ? 'فشل إرسال الطلب' : 'Échec de l\'envoi'}</p>
+                <p className="text-xs text-red-300 mt-1">{submitError}</p>
+              </div>
             </div>
           )}
 
@@ -394,7 +447,7 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
                 <input
                   type="file"
                   ref={fileInputRef}
-                  onChange={handlePhotoUpload}
+                  onChange={handlePhotoSelect}
                   accept="image/jpeg,image/png,image/webp,image/jpg"
                   multiple
                   className="hidden"
@@ -422,21 +475,21 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
               )}
 
               {/* Thumbnail Previews */}
-              {photos.length > 0 && (
+              {selectedPhotos.length > 0 && (
                 <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                  {photos.map((src, idx) => (
+                  {selectedPhotos.map((photoItem) => (
                     <div
-                      key={idx}
+                      key={photoItem.id}
                       className="relative rounded-xl overflow-hidden aspect-square border border-[#B08A45]/60 bg-[#1E1410] group"
                     >
                       <img
-                        src={src}
-                        alt={`Photo ${idx + 1}`}
+                        src={photoItem.previewUrl}
+                        alt="Preview"
                         className="w-full h-full object-cover"
                       />
                       <button
                         type="button"
-                        onClick={() => removePhoto(idx)}
+                        onClick={() => removePhoto(photoItem.id)}
                         className="absolute top-1 right-1 bg-red-600/90 text-white rounded-full p-1 opacity-90 hover:opacity-100 hover:scale-110 transition-all shadow"
                         title="حذف الصورة"
                       >
@@ -467,7 +520,7 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
               {isSubmitting ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>{t.submitSection.submittingBtn}</span>
+                  <span>{uploadStatusText || t.submitSection.submittingBtn}</span>
                 </>
               ) : (
                 <>

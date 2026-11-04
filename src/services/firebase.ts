@@ -1,0 +1,34 @@
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
+
+export const AUTHORIZED_ADMIN_EMAIL = 'moullbazar.ma@gmail.com';
+
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'moul-lbazar.firebaseapp.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'moul-lbazar',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'moul-lbazar.appspot.com',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '97949564837',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:97949564837:web:7d9aa5cf7538a65fad324c',
+};
+
+export const isFirebaseConfigured = (): boolean => {
+  return Boolean(firebaseConfig.apiKey && firebaseConfig.apiKey.trim() !== '');
+};
+
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let db: Firestore | null = null;
+
+if (isFirebaseConfigured()) {
+  try {
+    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+    auth = getAuth(app);
+    db = getFirestore(app);
+  } catch (error) {
+    console.error('Failed to initialize Firebase:', error);
+  }
+}
+
+export { app, auth, db, firebaseConfig };

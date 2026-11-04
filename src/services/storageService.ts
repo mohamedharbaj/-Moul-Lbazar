@@ -1,289 +1,236 @@
-import { AntiqueSubmission, SubmissionStatus } from '../types';
+import {
+  collection,
+  doc,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  query,
+  orderBy,
+  serverTimestamp,
+  Timestamp,
+} from 'firebase/firestore';
+import { db, isFirebaseConfigured } from './firebase';
+import { AntiqueSubmission, SubmissionPhoto, SubmissionStatus } from '../types';
 
-const STORAGE_KEY = 'moullbazar_submissions_v1';
-const DB_NAME = 'MoulLBazarDB';
-const DB_VERSION = 1;
-const STORE_NAME = 'submissions';
+const SUBMISSIONS_COLLECTION = 'submissions';
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
-// Initial realistic Moroccan antique submissions for demonstration
-const INITIAL_DEMO_SUBMISSIONS: AntiqueSubmission[] = [
-  {
-    id: 'sub_demo_101',
-    referenceCode: 'MLB-84920',
-    fullName: 'الحاج بوشعيب التازي',
-    city: 'فاس (Fès)',
-    phone: '0661234567',
-    categoryId: 'coins',
-    categoryTitle: 'العملات والأوراق النقدية القديمة',
-    description: 'قطعتان من الريال الحسني الفضي ضرب باريس عهد السلطان مولاي عبد العزيز 1321هـ بحالة ممتازة مع كتابات واضحة جداً، ومعهما 4 أوراق نقدية لمخزن المغرب تعود لسنة 1924.',
-    expectedPrice: '6,500 درهم',
-    photos: [
-      'https://images.unsplash.com/photo-1621416894569-0f39ed31d247?auto=format&fit=crop&w=600&q=80',
-    ],
-    status: 'pending',
-    createdAt: Date.now() - 3600000 * 4, // 4 hours ago
-    adminNotes: 'القطع تبدو أصلية 100%. تم التواصل عبر واتساب لتحديد موعد معاينة بمدينة فاس.',
-  },
-  {
-    id: 'sub_demo_102',
-    referenceCode: 'MLB-71204',
-    fullName: 'Laila Benjelloun',
-    city: 'الدار البيضاء (Casablanca)',
-    phone: '0672889911',
-    categoryId: 'clocks',
-    categoryTitle: 'الساعات القديمة والنادرة',
-    description: 'Montre gousset ancienne en or 18k de marque Oméga, numéro de série visible, mécanisme à remontage manuel fonctionnel, héritée de mon grand-père.',
-    expectedPrice: '12,000 DH',
-    photos: [
-      'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=80',
-    ],
-    status: 'reviewed',
-    createdAt: Date.now() - 3600000 * 28, // 1 day ago
-    adminNotes: 'ساعة أوميغا نادرة جداً، العيار سليم. في انتظار تأكيد السعر النهائي.',
-  },
-  {
-    id: 'sub_demo_103',
-    referenceCode: 'MLB-39511',
-    fullName: 'عبد الرحيم السوسي',
-    city: 'مراكش (Marrakech)',
-    phone: '0665443322',
-    categoryId: 'copper',
-    categoryTitle: 'النحاسيات والأواني التقليدية',
-    description: 'صينية نحاسية فاسية أصلية قطر 95 سم منقوشة باليد بآيات قرآنية وزخارف هندسية عتيقة، مع براد نحاس أحمر قديم.',
-    expectedPrice: '3,800 درهم',
-    photos: [
-      'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=600&q=80',
-    ],
-    status: 'purchased',
-    createdAt: Date.now() - 3600000 * 72, // 3 days ago
-    adminNotes: 'تم الاتفاق والشراء بنجاح وتسليم المبلغ نقداً.',
-  },
-];
-
-// Helper to open IndexedDB
-function openDB(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    if (typeof indexedDB === 'undefined') {
-      reject(new Error('IndexedDB not supported'));
-      return;
-    }
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
+export interface CreateSubmissionInput {
+  fullName: string;
+  city: string;
+  phone: string;
+  categoryId: string;
+  categoryTitle: string;
+  description: string;
+  expectedPrice?: string;
+  photos: SubmissionPhoto[];
 }
 
 export const StorageService = {
-  async getAllSubmissions(): Promise<AntiqueSubmission[]> {
+  /**
+   * Fetch all submissions from Firestore.
+   * By default hides expired submissions (expiresAt <= now).
+   */
+  async getAllSubmissions(includeExpired: boolean = false): Promise<AntiqueSubmission[]> {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error(
+        'قاعدة بيانات Firebase غير مهيأة بعد. يرجى ضبط مفاتيح Firebase في متغيرات البيئة.'
+      );
+    }
+
     try {
-      const db = await openDB();
-      return new Promise((resolve) => {
-        const tx = db.transaction(STORE_NAME, 'readonly');
-        const store = tx.objectStore(STORE_NAME);
-        const req = store.getAll();
-        req.onsuccess = () => {
-          let list = req.result as AntiqueSubmission[];
-          if (!list || list.length === 0) {
-            // Seed initial items if completely new
-            this.seedInitialSubmissions().then(resolve);
-          } else {
-            // Sort by newest first
-            list.sort((a, b) => b.createdAt - a.createdAt);
-            resolve(list);
+      const submissionsRef = collection(db, SUBMISSIONS_COLLECTION);
+      let snapshot;
+      try {
+        const q = query(submissionsRef, orderBy('createdAt', 'desc'));
+        snapshot = await getDocs(q);
+      } catch (orderError) {
+        console.warn('Fallback without orderBy:', orderError);
+        snapshot = await getDocs(submissionsRef);
+      }
+
+      const now = Date.now();
+      const list: AntiqueSubmission[] = [];
+
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+
+        // Convert createdAt
+        let createdAtMillis = now;
+        if (data.createdAt instanceof Timestamp) {
+          createdAtMillis = data.createdAt.toMillis();
+        } else if (typeof data.createdAt === 'number') {
+          createdAtMillis = data.createdAt;
+        } else if (data.createdAt?.seconds) {
+          createdAtMillis = data.createdAt.seconds * 1000;
+        }
+
+        // Convert expiresAt (defaults to createdAt + 7 days if not present)
+        let expiresAtMillis = createdAtMillis + SEVEN_DAYS_MS;
+        if (data.expiresAt instanceof Timestamp) {
+          expiresAtMillis = data.expiresAt.toMillis();
+        } else if (typeof data.expiresAt === 'number') {
+          expiresAtMillis = data.expiresAt;
+        } else if (data.expiresAt?.seconds) {
+          expiresAtMillis = data.expiresAt.seconds * 1000;
+        }
+
+        // Normalize photos array
+        const rawPhotos = Array.isArray(data.photos) ? data.photos : [];
+        const photos: SubmissionPhoto[] = rawPhotos.map((p: any) => {
+          if (typeof p === 'string') {
+            return { url: p, publicId: '' };
           }
+          return {
+            url: p?.url || '',
+            publicId: p?.publicId || '',
+          };
+        });
+
+        const submission: AntiqueSubmission = {
+          id: docSnap.id,
+          referenceCode: data.referenceCode || `MLB-${docSnap.id.substring(0, 5).toUpperCase()}`,
+          fullName: data.fullName || '',
+          city: data.city || '',
+          phone: data.phone || '',
+          categoryId: data.categoryId || '',
+          categoryTitle: data.categoryTitle || '',
+          description: data.description || '',
+          expectedPrice: data.expectedPrice || undefined,
+          photos,
+          status: (data.status as SubmissionStatus) || 'pending',
+          createdAt: createdAtMillis,
+          expiresAt: expiresAtMillis,
+          adminNotes: data.adminNotes || '',
         };
-        req.onerror = () => {
-          resolve(this.getLocalStorageFallback());
-        };
+
+        // Filter expired items unless explicitly requested
+        if (includeExpired || submission.expiresAt > now) {
+          list.push(submission);
+        }
       });
-    } catch {
-      return this.getLocalStorageFallback();
+
+      // Sort newest first
+      list.sort((a, b) => b.createdAt - a.createdAt);
+
+      return list;
+    } catch (error: any) {
+      console.error('Error fetching submissions from Firestore:', error);
+      throw new Error(
+        error?.message || 'فشل الاتصال بقاعدة بيانات Firestore لجلب الطلبات.'
+      );
     }
   },
 
-  getLocalStorageFallback(): AntiqueSubmission[] {
-    try {
-      const data = localStorage.getItem(STORAGE_KEY);
-      if (data) {
-        return JSON.parse(data);
-      }
-    } catch {
-      // ignore
+  /**
+   * Save a new submission to Firestore with 7-day expiration.
+   */
+  async addSubmission(input: CreateSubmissionInput): Promise<AntiqueSubmission> {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error(
+        'قاعدة بيانات Firebase غير متصلة. يرجى إعداد VITE_FIREBASE_API_KEY في ملف البيئة.'
+      );
     }
-    return INITIAL_DEMO_SUBMISSIONS;
-  },
 
-  async seedInitialSubmissions(): Promise<AntiqueSubmission[]> {
-    try {
-      const db = await openDB();
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      const store = tx.objectStore(STORE_NAME);
-      for (const item of INITIAL_DEMO_SUBMISSIONS) {
-        store.put(item);
-      }
-    } catch {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_DEMO_SUBMISSIONS));
-    }
-    return INITIAL_DEMO_SUBMISSIONS;
-  },
-
-  async addSubmission(submission: Omit<AntiqueSubmission, 'id' | 'referenceCode' | 'createdAt' | 'status'>): Promise<AntiqueSubmission> {
-    const id = 'sub_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+    const now = Date.now();
+    const expiresAt = now + SEVEN_DAYS_MS;
     const referenceCode = 'MLB-' + Math.floor(10000 + Math.random() * 90000);
-    const newEntry: AntiqueSubmission = {
-      ...submission,
-      id,
+
+    const docData = {
       referenceCode,
-      createdAt: Date.now(),
-      status: 'pending',
+      fullName: input.fullName.trim(),
+      city: input.city.trim(),
+      phone: input.phone.trim(),
+      categoryId: input.categoryId,
+      categoryTitle: input.categoryTitle,
+      description: input.description.trim(),
+      expectedPrice: input.expectedPrice?.trim() || null,
+      photos: input.photos,
+      status: 'pending' as SubmissionStatus,
+      createdAt: serverTimestamp(),
+      expiresAt: Timestamp.fromMillis(expiresAt),
+      adminNotes: '',
     };
 
     try {
-      const db = await openDB();
-      await new Promise<void>((resolve, reject) => {
-        const tx = db.transaction(STORE_NAME, 'readwrite');
-        const store = tx.objectStore(STORE_NAME);
-        const req = store.add(newEntry);
-        req.onsuccess = () => resolve();
-        req.onerror = () => reject(req.error);
-      });
-    } catch {
-      // LocalStorage fallback
-      const current = this.getLocalStorageFallback();
-      current.unshift(newEntry);
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
-      } catch (e) {
-        console.warn('LocalStorage full, truncated payload', e);
-      }
-    }
+      const docRef = await addDoc(collection(db, SUBMISSIONS_COLLECTION), docData);
 
-    return newEntry;
-  },
-
-  async updateStatus(id: string, status: SubmissionStatus): Promise<boolean> {
-    try {
-      const db = await openDB();
-      return new Promise((resolve) => {
-        const tx = db.transaction(STORE_NAME, 'readwrite');
-        const store = tx.objectStore(STORE_NAME);
-        const getReq = store.get(id);
-        getReq.onsuccess = () => {
-          const item = getReq.result as AntiqueSubmission;
-          if (item) {
-            item.status = status;
-            store.put(item);
-            resolve(true);
-          } else {
-            resolve(false);
-          }
-        };
-        getReq.onerror = () => resolve(false);
-      });
-    } catch {
-      const current = this.getLocalStorageFallback();
-      const idx = current.findIndex(i => i.id === id);
-      if (idx !== -1) {
-        current[idx].status = status;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
-        return true;
-      }
-      return false;
-    }
-  },
-
-  async updateNotes(id: string, notes: string): Promise<boolean> {
-    try {
-      const db = await openDB();
-      return new Promise((resolve) => {
-        const tx = db.transaction(STORE_NAME, 'readwrite');
-        const store = tx.objectStore(STORE_NAME);
-        const getReq = store.get(id);
-        getReq.onsuccess = () => {
-          const item = getReq.result as AntiqueSubmission;
-          if (item) {
-            item.adminNotes = notes;
-            store.put(item);
-            resolve(true);
-          } else {
-            resolve(false);
-          }
-        };
-        getReq.onerror = () => resolve(false);
-      });
-    } catch {
-      const current = this.getLocalStorageFallback();
-      const idx = current.findIndex(i => i.id === id);
-      if (idx !== -1) {
-        current[idx].adminNotes = notes;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
-        return true;
-      }
-      return false;
-    }
-  },
-
-  async deleteSubmission(id: string): Promise<boolean> {
-    try {
-      const db = await openDB();
-      return new Promise((resolve) => {
-        const tx = db.transaction(STORE_NAME, 'readwrite');
-        const store = tx.objectStore(STORE_NAME);
-        const req = store.delete(id);
-        req.onsuccess = () => resolve(true);
-        req.onerror = () => resolve(false);
-      });
-    } catch {
-      const current = this.getLocalStorageFallback().filter(i => i.id !== id);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
-      return true;
-    }
-  },
-
-  // Compress & convert file to clean base64 data URL with max dimension to keep storage lean
-  async processImageFile(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const maxDim = 1200;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > maxDim || height > maxDim) {
-            if (width > height) {
-              height = Math.round((height * maxDim) / width);
-              width = maxDim;
-            } else {
-              width = Math.round((width * maxDim) / height);
-              height = maxDim;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
-            resolve(dataUrl);
-          } else {
-            resolve(e.target?.result as string);
-          }
-        };
-        img.onerror = () => resolve(e.target?.result as string);
-        img.src = e.target?.result as string;
+      return {
+        id: docRef.id,
+        referenceCode,
+        fullName: input.fullName.trim(),
+        city: input.city.trim(),
+        phone: input.phone.trim(),
+        categoryId: input.categoryId,
+        categoryTitle: input.categoryTitle,
+        description: input.description.trim(),
+        expectedPrice: input.expectedPrice?.trim() || undefined,
+        photos: input.photos,
+        status: 'pending',
+        createdAt: now,
+        expiresAt,
+        adminNotes: '',
       };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+    } catch (error: any) {
+      console.error('Error writing submission to Firestore:', error);
+      throw new Error(
+        `فشل حفظ الطلب في Firestore: ${error?.message || 'تعذر الاتصال بالخادم'}`
+      );
+    }
+  },
+
+  /**
+   * Update submission status in Firestore.
+   */
+  async updateStatus(id: string, status: SubmissionStatus): Promise<boolean> {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error('Firebase غير متصل.');
+    }
+
+    try {
+      const docRef = doc(db, SUBMISSIONS_COLLECTION, id);
+      await updateDoc(docRef, { status });
+      return true;
+    } catch (error) {
+      console.error('Error updating status in Firestore:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update admin notes in Firestore.
+   */
+  async updateNotes(id: string, notes: string): Promise<boolean> {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error('Firebase غير متصل.');
+    }
+
+    try {
+      const docRef = doc(db, SUBMISSIONS_COLLECTION, id);
+      await updateDoc(docRef, { adminNotes: notes });
+      return true;
+    } catch (error) {
+      console.error('Error updating admin notes in Firestore:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete submission from Firestore.
+   */
+  async deleteSubmission(id: string): Promise<boolean> {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error('Firebase غير متصل.');
+    }
+
+    try {
+      const docRef = doc(db, SUBMISSIONS_COLLECTION, id);
+      await deleteDoc(docRef);
+      return true;
+    } catch (error) {
+      console.error('Error deleting submission from Firestore:', error);
+      throw error;
+    }
   },
 };
