@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>مول البزار | شراء التحف والمقتنيات القديمة في المغرب</title>
+    <meta name="description" content="الموقع الرسمي لمول البزار - متخصصون في شراء التحف والمقتنيات القديمة والقطع النادرة في المغرب وخارجه. تقييم صادق، تعامل جدي وأداء فوري." />
+    <meta property="og:title" content="مول البزار | شراء التحف والمقتنيات القديمة في المغرب" />
+    <meta property="og:description" content="عندك مقتنيات قديمة أو تحف نادرة؟ تواصل معنا للتقييم والشراء بأفضل الأسعار. خدمة في جميع مدن المغرب وخارجه." />
+    <meta property="og:image" content="/assets/aistudio/file_0000000015ec820aba63eec2af9b2648_c4a44570.png" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/png" href="/assets/aistudio/file_000000001fa08210aadc35a7bb8ed837_1463d11a.png" />
+    <!-- Google Fonts for Moroccan Arabic & Luxury serif -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@500;600;700;800&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+  </head>
+  <body class="bg-[#F5EFE3] text-[#292521] antialiased selection:bg-[#B08A45] selection:text-white">
+    <div id="root"></div>
+    <script>
+      function showErr(msg) {
+        var r = document.getElementById('root') || document.body;
+        var d = document.createElement('pre');
+        d.style.cssText = 'padding:16px;margin:16px;background:#fff;color:#b00020;border:2px solid #b00020;border-radius:8px;font:13px monospace;white-space:pre-wrap;direction:ltr;word-break:break-word';
+        d.textContent = msg;
+        r.appendChild(d);
+      }
+      window.addEventListener('error', function (e) {
+        showErr('JS ERROR: ' + e.message + ' @ ' + (e.filename || '') + ':' + (e.lineno || '') + (e.error && e.error.stack ? '\n' + e.error.stack : ''));
+      });
+      window.addEventListener('unhandledrejection', function (e) {
+        showErr('PROMISE ERROR: ' + (e.reason && (e.reason.stack || e.reason.message) || e.reason));
+      });
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
