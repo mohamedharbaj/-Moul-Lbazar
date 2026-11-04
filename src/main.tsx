@@ -66,3 +66,22 @@ import('./App')
   .catch((err) => {
     root.render(errorBox('IMPORT ERROR (خطأ أثناء تحميل الكود):', err));
   });
+
+// DEBUG: شريط يظهر بعد 6 ثواني
+setTimeout(() => {
+  const box = document.createElement('div');
+  box.style.cssText =
+    'position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#000;color:#0f0;font:12px monospace;padding:8px;direction:ltr;white-space:pre-wrap';
+  const header = document.querySelector('header');
+  const r = document.getElementById('root');
+  box.textContent =
+    'DEBUG\n' +
+    'root children: ' + (r ? r.childElementCount : 'no root') + '\n' +
+    'text length: ' + (r ? (r.innerText || '').length : 0) + '\n' +
+    'header found: ' + !!header + '\n' +
+    'header height: ' + (header ? header.getBoundingClientRect().height : 0) + '\n' +
+    'page height: ' + document.documentElement.scrollHeight + '\n' +
+    'scrollY: ' + window.scrollY + '\n' +
+    'body bg: ' + getComputedStyle(document.body).backgroundColor;
+  document.body.appendChild(box);
+}, 6000);
