@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { OFFICIAL_CONTACT } from '../translations';
+import { OFFICIAL_CONTACT, getDefaultWhatsAppMessage } from '../translations';
 import {
   MessageCircle,
   Facebook,
@@ -14,10 +14,10 @@ import {
 } from 'lucide-react';
 
 export const ContactSection: React.FC = () => {
-  const { lang, t, isRtl } = useLanguage();
+  const { lang, t, isRtl, L } = useLanguage();
 
   const whatsAppDirectUrl = `${OFFICIAL_CONTACT.whatsAppUrl}?text=${encodeURIComponent(
-    lang === 'ar' ? OFFICIAL_CONTACT.defaultWhatsAppMessageAr : OFFICIAL_CONTACT.defaultWhatsAppMessageFr
+    getDefaultWhatsAppMessage(lang)
   )}`;
 
   return (
@@ -27,7 +27,7 @@ export const ContactSection: React.FC = () => {
         <div className="text-center max-w-2xl mx-auto mb-14">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#B08A45]/15 border border-[#B08A45]/30 text-xs font-bold text-[#8C6B2D] mb-3">
             <Sparkles className="w-3.5 h-3.5 text-[#B08A45]" />
-            <span>{isRtl ? 'قنوات الاتصال المعتمدة' : 'Canaux Officiels'}</span>
+            <span>{L('قنوات الاتصال المعتمدة', 'Canaux Officiels', "Official Channels")}</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold font-heritage text-[#3B2921] mb-4">
             {t.contact.title}
@@ -48,7 +48,7 @@ export const ContactSection: React.FC = () => {
                   <MessageCircle className="w-8 h-8 fill-white" />
                 </div>
                 <span className="px-3 py-1 rounded-full bg-[#25D366]/10 text-[#1E9E4B] text-xs font-bold border border-[#25D366]/30">
-                  {isRtl ? 'القناة الأساسية والأسرع' : 'Canal Principal & Rapide'}
+                  {L('القناة الأساسية والأسرع', 'Canal Principal & Rapide', "Main & Fastest Channel")}
                 </span>
               </div>
 
@@ -89,7 +89,7 @@ export const ContactSection: React.FC = () => {
                   <Facebook className="w-8 h-8 fill-white" />
                 </div>
                 <span className="px-3 py-1 rounded-full bg-[#1877F2]/10 text-[#1877F2] text-xs font-bold border border-[#1877F2]/30">
-                  {isRtl ? 'الصفحة الرسمية المعتمدة' : 'Page Officielle Vérifiée'}
+                  {L('الصفحة الرسمية المعتمدة', 'Page Officielle Vérifiée', "Verified Official Page")}
                 </span>
               </div>
 
@@ -141,11 +141,11 @@ export const ContactSection: React.FC = () => {
           <div className="mt-6 pt-5 border-t border-[#B08A45]/30 flex flex-wrap items-center justify-between gap-4 text-xs text-[#D9C8A9]">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-[#D4AF37]" />
-              <span>{isRtl ? 'الرد على الواتساب عادة في أقل من ساعتين' : 'Réponse sur WhatsApp sous 2 heures'}</span>
+              <span>{L('الرد على الواتساب عادة في أقل من ساعتين', 'Réponse sur WhatsApp sous 2 heures', "WhatsApp reply usually within 2 hours")}</span>
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-[#D4AF37]" />
-              <span>{isRtl ? 'المملكة المغربية — كافة الأقاليم' : 'Royaume du Maroc — Toutes préfectures'}</span>
+              <span>{L('المملكة المغربية — كافة الأقاليم', 'Royaume du Maroc — Toutes préfectures', "Kingdom of Morocco — All regions")}</span>
             </div>
           </div>
         </div>
