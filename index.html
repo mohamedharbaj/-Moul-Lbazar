@@ -37,17 +37,25 @@
         showErr('PROMISE ERROR: ' + (e.reason && (e.reason.stack || e.reason.message) || e.reason));
       });
     </script>
-    <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Resource-loading errors do not reliably bubble to window.error.
-      // Listen directly to the Vite module script so a failed app bundle is visible.
-      document.querySelectorAll('script[type="module"][src]').forEach(function (script) {
-        script.addEventListener('error', function () {
-          showErr('MODULE LOAD ERROR: تعذر تحميل ملف تشغيل الموقع: ' + script.src +
-            '\nتحقق من ملفات النشر وطلبات JavaScript في Cloudflare Pages.');
-        });
+      // Diagnostic only: report whether the browser executes the built app entry.
+      window.__moulEntryStarted = false;
+      window.addEventListener('error', function (e) {
+        showErr('BROWSER ERROR: ' + e.message + ' @ ' + (e.filename || '') + ':' + (e.lineno || ''));
       });
+      window.addEventListener('unhandledrejection', function (e) {
+        showErr('PROMISE ERROR: ' + (e.reason && (e.reason.stack || e.reason.message) || e.reason));
+      });
+      setTimeout(function () {
+        var status = document.getElementById('app-startup-status');
+        if (status && document.getElementById('root').contains(status)) {
+          status.textContent = 'DIAGNOSTIC: ملف التطبيق لم يستبدل شاشة التحميل خلال 12 ثانية. هذا يعني أن React لم يركب الواجهة بعد.';
+        }
+      }, 12000);
     </script>
+    <script type="module" src="/src/main.tsx"
+      onload="window.__moulEntryStarted=true; var s=document.getElementById('app-startup-status'); if(s && document.getElementById('root').contains(s)){s.textContent='DIAGNOSTIC: تم تحميل ملف JavaScript بنجاح، لكن واجهة React لم تظهر.';}"
+      onerror="var s=document.getElementById('app-startup-status'); if(s){s.textContent='DIAGNOSTIC: فشل تحميل ملف JavaScript الرئيسي.';} showErr('MODULE LOAD ERROR: تعذر تحميل ملف تشغيل الموقع.');"></script>
   </body>
 </html>
 
