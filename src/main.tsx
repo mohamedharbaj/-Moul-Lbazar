@@ -67,21 +67,25 @@ import('./App')
     root.render(errorBox('IMPORT ERROR (خطأ أثناء تحميل الكود):', err));
   });
 
-// DEBUG: شريط يظهر بعد 6 ثواني
+// DEBUG: نافذة alert بعد 6 ثواني
 setTimeout(() => {
-  const box = document.createElement('div');
-  box.style.cssText =
-    'position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#000;color:#0f0;font:12px monospace;padding:8px;direction:ltr;white-space:pre-wrap';
-  const header = document.querySelector('header');
   const r = document.getElementById('root');
-  box.textContent =
+  const header = document.querySelector('header');
+  const h1 = document.querySelector('h1');
+  const cs = h1 ? getComputedStyle(h1) : null;
+  const msg =
     'DEBUG\n' +
     'root children: ' + (r ? r.childElementCount : 'no root') + '\n' +
     'text length: ' + (r ? (r.innerText || '').length : 0) + '\n' +
     'header found: ' + !!header + '\n' +
-    'header height: ' + (header ? header.getBoundingClientRect().height : 0) + '\n' +
+    'header height: ' + (header ? Math.round(header.getBoundingClientRect().height) : 0) + '\n' +
     'page height: ' + document.documentElement.scrollHeight + '\n' +
     'scrollY: ' + window.scrollY + '\n' +
-    'body bg: ' + getComputedStyle(document.body).backgroundColor;
-  document.body.appendChild(box);
+    'body bg: ' + getComputedStyle(document.body).backgroundColor + '\n' +
+    'h1 color: ' + (cs ? cs.color : '-') + '\n' +
+    'h1 fill: ' + (cs ? (cs as any).webkitTextFillColor : '-') + '\n' +
+    'h1 opacity: ' + (cs ? cs.opacity : '-') + '\n' +
+    'h1 visibility: ' + (cs ? cs.visibility : '-') + '\n' +
+    'UA: ' + navigator.userAgent;
+  alert(msg);
 }, 6000);
