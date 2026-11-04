@@ -3,7 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { Camera, Send, Banknote, Sparkles, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
 
 export const HowItWorks: React.FC = () => {
-  const { t, isRtl } = useLanguage();
+  const { t, isRtl, L } = useLanguage();
 
   const steps = [
     {
@@ -36,7 +36,7 @@ export const HowItWorks: React.FC = () => {
         <div className="text-center max-w-2xl mx-auto mb-16">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#B08A45]/15 border border-[#B08A45]/30 text-xs font-bold text-[#8C6B2D] mb-3">
             <Sparkles className="w-3.5 h-3.5 text-[#B08A45]" />
-            <span>{isRtl ? 'بساطة وأمان' : 'Simplicité & Sécurité'}</span>
+            <span>{L('بساطة وأمان', 'Simplicité & Sécurité', "Simplicity & Security")}</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold font-heritage text-[#3B2921] mb-4">
             {t.howItWorks.title}
@@ -79,9 +79,9 @@ export const HowItWorks: React.FC = () => {
                 {/* Bottom decorative bar */}
                 <div className="pt-4 border-t border-[#B08A45]/20 flex items-center justify-between text-xs text-[#8C6B2D] font-bold">
                   <span>
-                    {idx === 0 && (isRtl ? 'تصوير بجودة جيدة' : 'Photos de qualité')}
-                    {idx === 1 && (isRtl ? 'واتساب أو الاستمارة' : 'WhatsApp ou Formulaire')}
-                    {idx === 2 && (isRtl ? 'دفع فوري نقداً' : 'Paiement immédiat')}
+                    {idx === 0 && (L('تصوير بجودة جيدة', 'Photos de qualité', "Quality photos"))}
+                    {idx === 1 && (L('واتساب أو الاستمارة', 'WhatsApp ou Formulaire', "WhatsApp or Form"))}
+                    {idx === 2 && (L('دفع فوري نقداً', 'Paiement immédiat', "Immediate payment"))}
                   </span>
                   {idx < 2 && (
                     <span className="hidden md:inline">
@@ -99,9 +99,7 @@ export const HowItWorks: React.FC = () => {
           <p className="text-sm sm:text-base font-medium text-[#3B2921]">
             <span className="font-bold text-[#B08A45]">★ {t.sloganSecondary}</span>
             <br />
-            {isRtl
-              ? 'لا تتردد في مراسلتنا مهما كانت حالة القطعة أو درجة قدمها. المعاينة والاستشارة مجانية 100%.'
-              : 'N\'hésitez pas à nous consulter quel que soit l\'état de conservation de votre pièce. L\'expertise est totalement gratuite.'}
+            {L('لا تتردد في مراسلتنا مهما كانت حالة القطعة أو درجة قدمها. المعاينة والاستشارة مجانية 100%.', 'N\'hésitez pas à nous consulter quel que soit l\'état de conservation de votre pièce. L\'expertise est totalement gratuite.', "Feel free to contact us whatever the condition of your piece. The appraisal is completely free.")}
           </p>
         </div>
       </div>
