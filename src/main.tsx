@@ -1,51 +1,39 @@
-import {Component, ReactNode} from 'react';
-import {createRoot} from 'react-dom/client';
-import App from './App.tsx';
-import './index.css';
+import React from 'react';
+import { createRoot } from 'react-dom/client';
 
-const box: React.CSSProperties = {
-  padding: 16,
-  margin: 16,
-  background: '#fff',
-  color: '#b00020',
-  border: '2px solid #b00020',
-  borderRadius: 8,
-  fontFamily: 'monospace',
-  fontSize: 13,
-  whiteSpace: 'pre-wrap',
-  direction: 'ltr',
-  wordBreak: 'break-word',
+const TestApp = () => {
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#F5EFE3',
+        color: '#292521',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        padding: '20px',
+        fontFamily: 'Arial, sans-serif',
+      }}
+    >
+      <h1 style={{ fontSize: '32px' }}>
+        مول البزار
+      </h1>
+
+      <p style={{ fontSize: '20px' }}>
+        الموقع خدام بنجاح!
+      </p>
+
+      <p>
+        اختبار تشغيل React
+      </p>
+    </div>
+  );
 };
 
-class ErrorBoundary extends Component<{children: ReactNode}, {error: Error | null}> {
-  state = {error: null as Error | null};
-  static getDerivedStateFromError(error: Error) {
-    return {error};
-  }
-  render() {
-    if (this.state.error) {
-      return (
-        <div style={box}>
-          {'APP ERROR:\n' + this.state.error.message + '\n\n' + (this.state.error.stack || '')}
-        </div>
-      );
-    }
-    return this.props.children;
-  }
+const rootElement = document.getElementById('root');
+
+if (rootElement) {
+  createRoot(rootElement).render(<TestApp />);
 }
-
-window.addEventListener('error', (e) => {
-  const root = document.getElementById('root');
-  if (root && !root.hasChildNodes()) {
-    const d = document.createElement('div');
-    Object.assign(d.style, box as any);
-    d.textContent = 'JS ERROR: ' + e.message + ' @ ' + e.filename + ':' + e.lineno;
-    root.appendChild(d);
-  }
-});
-
-createRoot(document.getElementById('root')!).render(
-  <ErrorBoundary>
-    <App />
-  </ErrorBoundary>,
-);
