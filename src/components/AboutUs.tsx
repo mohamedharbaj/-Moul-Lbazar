@@ -4,7 +4,7 @@ import { OFFICIAL_CONTACT } from '../translations';
 import { ShieldCheck, Handshake, History, Banknote, Globe2, Sparkles, CheckCircle2 } from 'lucide-react';
 
 export const AboutUs: React.FC = () => {
-  const { t, isRtl } = useLanguage();
+  const { t, isRtl, L } = useLanguage();
 
   const valueIcons = [
     ShieldCheck,
@@ -50,7 +50,7 @@ export const AboutUs: React.FC = () => {
                       مول البزار | Moul LBazar
                     </p>
                     <p className="text-xs text-[#D9C8A9]">
-                      {isRtl ? 'خبير ومختص في شراء وتقييم المقتنيات النادرة' : 'Expert en rachat et évaluation d\'antiquités'}
+                      {L('خبير ومختص في شراء وتقييم المقتنيات النادرة', 'Expert en rachat et évaluation d\'antiquités', "Expert in buying and appraising antiques")}
                     </p>
                   </div>
                 </div>
@@ -120,20 +120,18 @@ export const AboutUs: React.FC = () => {
             <div className="bg-gradient-to-br from-[#3B2921] to-[#2D1E18] text-white p-6 rounded-xl border border-[#B08A45] shadow-lg flex flex-col justify-between">
               <div>
                 <span className="text-xs uppercase font-bold tracking-wider text-[#D4AF37] mb-2 block">
-                  {isRtl ? 'ضمان مول البزار' : 'Garantie Moul LBazar'}
+                  {L('ضمان مول البزار', 'Garantie Moul LBazar', "Moul LBazar Guarantee")}
                 </span>
                 <h4 className="text-lg font-bold font-heritage text-white mb-2">
-                  {isRtl ? 'كنوز الماضي تستحق التقدير' : 'Valorisation équitable'}
+                  {L('كنوز الماضي تستحق التقدير', 'Valorisation équitable', "Fair valuation")}
                 </h4>
                 <p className="text-xs sm:text-sm text-[#D9C8A9] leading-relaxed">
-                  {isRtl
-                    ? 'يمكن تكون عندك قطعة قديمة بالبيت كتعتقد أنها بدون قيمة، بينما تسوى الكثير في سوق المقتنيات. نحن هنا لندلك على قيمتها الحقيقية.'
-                    : 'Un objet ancien oublié chez vous peut receler une valeur considérable. Nous vous aidons à en révéler la véritable valeur marchande.'}
+                  {L('يمكن تكون عندك قطعة قديمة بالبيت كتعتقد أنها بدون قيمة، بينما تسوى الكثير في سوق المقتنيات. نحن هنا لندلك على قيمتها الحقيقية.', 'Un objet ancien oublié chez vous peut receler une valeur considérable. Nous vous aidons à en révéler la véritable valeur marchande.', "An old object forgotten at home may hold considerable value. We help you discover its true market value.")}
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-[#B08A45]/30 flex items-center gap-2 text-xs text-[#25D366] font-bold">
                 <CheckCircle2 className="w-4 h-4" />
-                <span>{isRtl ? 'استشارة وتقييم مجاني 100%' : 'Expertise 100% Gratuite'}</span>
+                <span>{L('استشارة وتقييم مجاني 100%', 'Expertise 100% Gratuite', "100% Free Appraisal")}</span>
               </div>
             </div>
           </div>
