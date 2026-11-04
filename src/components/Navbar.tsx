@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { OFFICIAL_CONTACT } from '../translations';
+import { OFFICIAL_CONTACT, getDefaultWhatsAppMessage } from '../translations';
+import { Language } from '../types';
 import { MessageCircle, Menu, X, Shield, Globe, Sparkles } from 'lucide-react';
 
 interface NavbarProps {
@@ -9,12 +10,14 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenSubmit, onOpenAdmin }) => {
-  const { lang, setLang, t, isRtl } = useLanguage();
+  const { lang, setLang, t, isRtl, L } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const toggleLanguage = () => {
-    setLang(lang === 'ar' ? 'fr' : 'ar');
-  };
+  const LANGS: { code: Language; label: string }[] = [
+    { code: 'ar', label: 'عر' },
+    { code: 'fr', label: 'FR' },
+    { code: 'en', label: 'EN' },
+  ];
 
   const navLinks = [
     { label: t.nav.home, href: '#home' },
@@ -33,7 +36,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSubmit, onOpenAdmin }) => 
   };
 
   const whatsAppDirectUrl = `${OFFICIAL_CONTACT.whatsAppUrl}?text=${encodeURIComponent(
-    lang === 'ar' ? OFFICIAL_CONTACT.defaultWhatsAppMessageAr : OFFICIAL_CONTACT.defaultWhatsAppMessageFr
+    getDefaultWhatsAppMessage(lang)
   )}`;
 
   return (
@@ -44,11 +47,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSubmit, onOpenAdmin }) => 
           <div className="flex items-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-[#25D366] animate-pulse"></span>
             <span className="font-medium text-white/90">
-              {isRtl ? 'الموقع الرسمي المعتمد • مول البزار' : 'Site officiel certifié • Moul LBazar'}
+              {L('الموقع الرسمي المعتمد • مول البزار', 'Site officiel certifié • Moul LBazar', "Official certified site • Moul LBazar")}
             </span>
             <span className="hidden sm:inline text-[#B08A45]">|</span>
             <span className="hidden sm:inline text-xs text-[#D9C8A9]">
-              {isRtl ? 'شراء وتقييم التحف والمقتنيات القديمة' : 'Achat et expertise d\'antiquités'}
+              {L('شراء وتقييم التحف والمقتنيات القديمة', 'Achat et expertise d\'antiquités', "Antiques buying and appraisal")}
             </span>
           </div>
 
@@ -102,7 +105,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSubmit, onOpenAdmin }) => 
               </span>
             </div>
             <span className="text-[11px] sm:text-xs text-[#D9C8A9] font-medium leading-tight">
-              {isRtl ? 'شراء التحف والمقتنيات القديمة' : 'Achat d\'antiquités & objets anciens'}
+              {L('شراء التحف والمقتنيات القديمة', 'Achat d\'antiquités & objets anciens', "Buying antiques & old objects")}
             </span>
           </div>
         </a>
@@ -123,14 +126,28 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSubmit, onOpenAdmin }) => 
         {/* Actions: Submit Button, Language Selector, WhatsApp CTA */}
         <div className="hidden sm:flex items-center gap-3">
           {/* Language switcher */}
-          <button
-            onClick={toggleLanguage}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#B08A45]/40 bg-[#2D1E18] text-xs font-medium text-[#D9C8A9] hover:text-white hover:border-[#B08A45] transition-colors"
-            title="تغيير اللغة / Changer de langue"
+          <Globe className="w-3.5 h-3.5 text-[#B08A45]" />
+          <div
+            className="flex items-center rounded-lg border border-[#B08A45]/40 bg-[#2D1E18] overflow-hidden"
+            role="group"
+            aria-label="Language"
           >
-            <Globe className="w-3.5 h-3.5 text-[#B08A45]" />
-            <span>{lang === 'ar' ? 'Français' : 'العربية'}</span>
-          </button>
+            {LANGS.map((l) => (
+              <button
+                key={l.code}
+                type="button"
+                onClick={() => setLang(l.code)}
+                aria-pressed={lang === l.code}
+                className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                  lang === l.code
+                    ? 'bg-[#B08A45] text-white'
+                    : 'text-[#D9C8A9] hover:text-white'
+                }`}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
 
           {/* Submit Item Button */}
           <button
@@ -154,12 +171,27 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSubmit, onOpenAdmin }) => 
 
         {/* Mobile menu trigger */}
         <div className="flex items-center gap-2 sm:hidden">
-          <button
-            onClick={toggleLanguage}
-            className="px-2 py-1 rounded border border-[#B08A45]/40 text-xs text-[#D9C8A9]"
+          <div
+            className="flex items-center rounded-lg border border-[#B08A45]/40 bg-[#2D1E18] overflow-hidden"
+            role="group"
+            aria-label="Language"
           >
-            {lang === 'ar' ? 'FR' : 'عر'}
-          </button>
+            {LANGS.map((l) => (
+              <button
+                key={l.code}
+                type="button"
+                onClick={() => setLang(l.code)}
+                aria-pressed={lang === l.code}
+                className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                  lang === l.code
+                    ? 'bg-[#B08A45] text-white'
+                    : 'text-[#D9C8A9] hover:text-white'
+                }`}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
 
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -208,13 +240,30 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSubmit, onOpenAdmin }) => 
               </a>
 
               <div className="flex items-center justify-between pt-2 text-xs text-[#D9C8A9]">
-                <button
-                  onClick={toggleLanguage}
-                  className="flex items-center gap-1.5 underline"
-                >
+                <div className="flex items-center gap-1.5">
                   <Globe className="w-3.5 h-3.5" />
-                  <span>{lang === 'ar' ? 'Passer en Français' : 'التحويل إلى العربية'}</span>
-                </button>
+                  <div
+                              className="flex items-center rounded-lg border border-[#B08A45]/40 bg-[#2D1E18] overflow-hidden"
+                              role="group"
+                              aria-label="Language"
+                            >
+                              {LANGS.map((l) => (
+                                <button
+                                  key={l.code}
+                                  type="button"
+                                  onClick={() => setLang(l.code)}
+                                  aria-pressed={lang === l.code}
+                                  className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                                    lang === l.code
+                                      ? 'bg-[#B08A45] text-white'
+                                      : 'text-[#D9C8A9] hover:text-white'
+                                  }`}
+                                >
+                                  {l.label}
+                                </button>
+                              ))}
+                            </div>
+                </div>
 
                 <button
                   onClick={() => {
