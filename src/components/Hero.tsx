@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { OFFICIAL_CONTACT } from '../translations';
+import { OFFICIAL_CONTACT, getDefaultWhatsAppMessage } from '../translations';
 import { MessageCircle, UploadCloud, CheckCircle2, ShieldCheck, MapPin, Sparkles, Award } from 'lucide-react';
 
 interface HeroProps {
@@ -8,10 +8,10 @@ interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({ onOpenSubmit }) => {
-  const { lang, t, isRtl } = useLanguage();
+  const { lang, t, isRtl, L } = useLanguage();
 
   const whatsAppDirectUrl = `${OFFICIAL_CONTACT.whatsAppUrl}?text=${encodeURIComponent(
-    lang === 'ar' ? OFFICIAL_CONTACT.defaultWhatsAppMessageAr : OFFICIAL_CONTACT.defaultWhatsAppMessageFr
+    getDefaultWhatsAppMessage(lang)
   )}`;
 
   return (
@@ -49,7 +49,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenSubmit }) => {
               <div className={`absolute bottom-3 ${isRtl ? 'right-3' : 'left-3'} bg-[#2A1C16]/90 backdrop-blur-md border border-[#B08A45]/60 px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-lg`}>
                 <Award className="w-4 h-4 text-[#D4AF37]" />
                 <span className="text-xs font-semibold text-[#F5EFE3]">
-                  {isRtl ? 'الهوية الرسمية المعتمدة • مول البزار' : 'Identité Officielle • Moul LBazar'}
+                  {L('الهوية الرسمية المعتمدة • مول البزار', 'Identité Officielle • Moul LBazar', "Official Identity • Moul LBazar")}
                 </span>
               </div>
             </div>
