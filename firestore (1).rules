@@ -1,0 +1,67 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny: no collection is open by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    match /submissions/{submissionId} {
+
+      function isAuthorizedAdmin() {
+        return request.auth != null &&
+               request.auth.token.email != null &&
+               request.auth.token.email.lower() == 'moullbazar.ma@gmail.com';
+      }
+
+      function isValidNewSubmission() {
+        let data = request.resource.data;
+        return data.keys().hasOnly([
+                 'referenceCode', 'fullName', 'city', 'phone',
+                 'categoryId', 'categoryTitle', 'description',
+                 'expectedPrice', 'photos', 'status',
+                 'createdAt', 'expiresAt', 'adminNotes'
+               ]) &&
+               data.keys().hasAll([
+                 'referenceCode', 'fullName', 'city', 'phone',
+                 'categoryId', 'categoryTitle', 'description',
+                 'photos', 'status', 'createdAt', 'expiresAt'
+               ]) &&
+               data.referenceCode is string && data.referenceCode.size() <= 20 &&
+               data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 100 &&
+               data.city is string && data.city.size() >= 2 && data.city.size() <= 100 &&
+               data.phone is string && data.phone.size() >= 8 && data.phone.size() <= 25 &&
+               data.categoryId is string && data.categoryId.size() <= 60 &&
+               data.categoryTitle is string && data.categoryTitle.size() <= 100 &&
+               data.description is string && data.description.size() >= 10 && data.description.size() <= 3000 &&
+               (!('expectedPrice' in data) || data.expectedPrice == null ||
+                 (data.expectedPrice is string && data.expectedPrice.size() <= 100)) &&
+               (!('adminNotes' in data) || data.adminNotes == '') &&
+               data.status == 'pending' &&
+               // createdAt must be the server time; expiresAt ~7 days from now
+               data.createdAt == request.time &&
+               data.expiresAt is timestamp &&
+               data.expiresAt >= request.time + duration.value(5, 'd') &&
+               data.expiresAt <= request.time + duration.value(8, 'd') &&
+               // photos: 1..10 items, each uploaded to our Cloudinary account
+               data.photos is list && data.photos.size() >= 1 && data.photos.size() <= 10 &&
+               data.photos[0] is map &&
+               data.photos[0].url is string &&
+               data.photos[0].url.matches('^https://res\\.cloudinary\\.com/tu7covvj/.*');
+      }
+
+      // Visitors can ONLY create valid new submissions
+      allow create: if isValidNewSubmission();
+
+      // Only the authorized admin can read, delete, or update
+      allow read, delete: if isAuthorizedAdmin();
+
+      // Admin may only change status and admin notes
+      allow update: if isAuthorizedAdmin() &&
+                       request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['status', 'adminNotes']);
+    }
+  }
+}
