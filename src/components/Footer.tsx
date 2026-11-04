@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { CATEGORIES_DATA, OFFICIAL_CONTACT } from '../translations';
+import { CATEGORIES_DATA, OFFICIAL_CONTACT, getDefaultWhatsAppMessage, getCategoryText } from '../translations';
 import {
   MessageCircle,
   Facebook,
@@ -17,14 +17,14 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ onOpenAdmin, onOpenSubmit }) => {
-  const { lang, t, isRtl } = useLanguage();
+  const { lang, t, isRtl, L } = useLanguage();
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const whatsAppDirectUrl = `${OFFICIAL_CONTACT.whatsAppUrl}?text=${encodeURIComponent(
-    lang === 'ar' ? OFFICIAL_CONTACT.defaultWhatsAppMessageAr : OFFICIAL_CONTACT.defaultWhatsAppMessageFr
+    getDefaultWhatsAppMessage(lang)
   )}`;
 
   return (
@@ -121,6 +121,11 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin, onOpenSubmit }) => 
                 </a>
               </li>
               <li>
+                <a href="/privacy.html" className="hover:text-[#D4AF37] transition-colors">
+                  {L('سياسة الخصوصية', 'Politique de confidentialité', "Privacy Policy")}
+                </a>
+              </li>
+              <li>
                 <button
                   onClick={onOpenAdmin}
                   className="flex items-center gap-1.5 text-[#B08A45] hover:text-[#D4AF37] transition-colors"
@@ -142,7 +147,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin, onOpenSubmit }) => 
                 <li key={cat.id} className="truncate">
                   <a href="#categories" className="hover:text-[#D4AF37] transition-colors flex items-center gap-1.5">
                     <span className="w-1 h-1 rounded-full bg-[#B08A45]"></span>
-                    <span>{lang === 'ar' ? cat.titleAr : cat.titleFr}</span>
+                    <span>{getCategoryText(cat, lang).title}</span>
                   </a>
                 </li>
               ))}
