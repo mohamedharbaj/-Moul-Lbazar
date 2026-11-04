@@ -1,4 +1,4 @@
-export type Language = 'ar' | 'fr';
+export type Language = 'ar' | 'fr' | 'en';
 
 export type SubmissionStatus = 'pending' | 'reviewed' | 'approved' | 'purchased' | 'rejected';
 
@@ -28,10 +28,13 @@ export interface CategoryItem {
   id: string;
   titleAr: string;
   titleFr: string;
+  titleEn: string;
   descAr: string;
   descFr: string;
+  descEn: string;
   examplesAr: string[];
   examplesFr: string[];
+  examplesEn: string[];
   image: string;
   iconName: string;
 }
