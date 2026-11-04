@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { OFFICIAL_CONTACT } from '../translations';
+import { OFFICIAL_CONTACT, getDefaultWhatsAppMessage } from '../translations';
 import { MessageCircle, X } from 'lucide-react';
 
 export const FloatingWhatsApp: React.FC = () => {
-  const { lang, isRtl } = useLanguage();
+  const { lang, isRtl, L } = useLanguage();
   const [showTooltip, setShowTooltip] = useState(true);
 
   const whatsAppDirectUrl = `${OFFICIAL_CONTACT.whatsAppUrl}?text=${encodeURIComponent(
-    lang === 'ar' ? OFFICIAL_CONTACT.defaultWhatsAppMessageAr : OFFICIAL_CONTACT.defaultWhatsAppMessageFr
+    getDefaultWhatsAppMessage(lang)
   )}`;
 
   return (
@@ -20,7 +20,7 @@ export const FloatingWhatsApp: React.FC = () => {
       {showTooltip && (
         <div className="hidden sm:flex items-center gap-2 bg-[#2D1E18] text-[#F5EFE3] text-xs font-semibold py-2 px-3.5 rounded-xl border border-[#B08A45]/50 shadow-2xl animate-bounce">
           <span>
-            {isRtl ? 'راسلنا على واتساب للتقييم الفوري' : 'WhatsApp direct pour estimation'}
+            {L('راسلنا على واتساب للتقييم الفوري', 'WhatsApp direct pour estimation', "WhatsApp us for an instant appraisal")}
           </span>
           <button
             onClick={(e) => {
