@@ -7,31 +7,53 @@ interface LanguageContextType {
   setLang: (lang: Language) => void;
   t: typeof TRANSLATIONS.ar;
   isRtl: boolean;
-  /** Pick a value by language: L(arabic, french, english) */
   L: <T,>(ar: T, fr: T, en: T) => T;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+// قراءة اللغة بشكل آمن
+const getSavedLanguage = (): Language => {
+  try {
+    const saved = localStorage.getItem('moullbazar_lang');
+
+    if (saved === 'fr' || saved === 'en') {
+      return saved;
+    }
+  } catch (error) {
+    console.warn('Could not access saved language:', error);
+  }
+
+  return 'ar';
+};
+
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [lang, setLangState] = useState<Language>(() => {
-    const saved = localStorage.getItem('moullbazar_lang') as Language;
-    return saved === 'fr' || saved === 'en' ? saved : 'ar'; // Default Arabic
-  });
+  const [lang, setLangState] = useState<Language>(getSavedLanguage);
 
   const setLang = (newLang: Language) => {
     setLangState(newLang);
-    localStorage.setItem('moullbazar_lang', newLang);
+
+    try {
+      localStorage.setItem('moullbazar_lang', newLang);
+    } catch (error) {
+      console.warn('Could not save language:', error);
+    }
   };
 
   const isRtl = lang === 'ar';
   const t = TRANSLATIONS[lang] as typeof TRANSLATIONS.ar;
-  const L = <T,>(ar: T, fr: T, en: T): T => (lang === 'ar' ? ar : lang === 'fr' ? fr : en);
+
+  const L = <T,>(ar: T, fr: T, en: T): T => {
+    return lang === 'ar' ? ar : lang === 'fr' ? fr : en;
+  };
 
   useEffect(() => {
     document.documentElement.lang = lang;
     document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
-    document.title = t.metaTitle;
+
+    if (t?.metaTitle) {
+      document.title = t.metaTitle;
+    }
   }, [lang, isRtl, t]);
 
   return (
@@ -43,8 +65,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
+
   if (!context) {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
+
   return context;
 };
