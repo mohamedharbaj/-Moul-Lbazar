@@ -3,7 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { StorageService } from '../services/storageService';
 import { CloudinaryService, CLOUDINARY_CONFIG } from '../services/cloudinaryService';
 import { isFirebaseConfigured } from '../services/firebase';
-import { CATEGORIES_DATA, MOROCCAN_CITIES, OFFICIAL_CONTACT } from '../translations';
+import { CATEGORIES_DATA, MOROCCAN_CITIES, OFFICIAL_CONTACT, getCategoryText, getCityLabel } from '../translations';
 import { AntiqueSubmission } from '../types';
 import {
   UploadCloud,
@@ -26,11 +26,13 @@ interface LocalPhotoItem {
   previewUrl: string;
 }
 
+const MAX_PHOTOS = 10;
+
 export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
   initialCategoryId = '',
   onSubmissionSuccess,
 }) => {
-  const { lang, t, isRtl } = useLanguage();
+  const { lang, t, isRtl, L } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form states
@@ -40,6 +42,8 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
   const [categoryId, setCategoryId] = useState(initialCategoryId);
   const [description, setDescription] = useState('');
   const [expectedPrice, setExpectedPrice] = useState('');
+  const [consent, setConsent] = useState(false);
+  const [honeypot, setHoneypot] = useState(''); // anti-spam: must stay empty
 
   // Selected local files for upload
   const [selectedPhotos, setSelectedPhotos] = useState<LocalPhotoItem[]>([]);
@@ -82,20 +86,23 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
 
+      if (selectedPhotos.length + newItems.length >= MAX_PHOTOS) {
+        setPhotoError(
+          L(`الحد الأقصى هو ${MAX_PHOTOS} صور.`, `Maximum ${MAX_PHOTOS} photos.`, `Maximum ${MAX_PHOTOS} photos.`)
+        );
+        break;
+      }
+
       if (!CLOUDINARY_CONFIG.allowedTypes.includes(file.type)) {
         setPhotoError(
-          isRtl
-            ? `نوع الملف "${file.name}" غير مدعوم. المرجو اختيار صور بصيغة JPG أو PNG أو WebP.`
-            : `Le format de "${file.name}" n'est pas supporté. Utilisez JPG, PNG ou WebP.`
+          L(`نوع الملف "${file.name}" غير مدعوم. المرجو اختيار صور بصيغة JPG أو PNG أو WebP.`, `Le format de "${file.name}" n'est pas supporté. Utilisez JPG, PNG ou WebP.`, `The format of "${file.name}" is not supported. Please use JPG, PNG or WebP.`)
         );
         continue;
       }
 
       if (file.size > CLOUDINARY_CONFIG.maxSizeBytes) {
         setPhotoError(
-          isRtl
-            ? `حجم الصورة "${file.name}" كبير جداً (أكبر من 10 ميغابايت).`
-            : `La taille de "${file.name}" dépasse 10 Mo.`
+          L(`حجم الصورة "${file.name}" كبير جداً (أكبر من 10 ميغابايت).`, `La taille de "${file.name}" dépasse 10 Mo.`, `The size of "${file.name}" exceeds 10 MB.`)
         );
         continue;
       }
@@ -128,6 +135,7 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (honeypot) return; // bots fill hidden fields
     setSubmitError(null);
     const errors: Record<string, string> = {};
 
@@ -157,6 +165,10 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
       errors.photos = t.submitSection.validation.photosRequired;
     }
 
+    if (!consent) {
+      errors.consent = L('المرجو الموافقة على سياسة الخصوصية للمتابعة.', 'Veuillez accepter la politique de confidentialité pour continuer.', "Please accept the privacy policy to continue.");
+    }
+
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       return;
@@ -165,9 +177,7 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
     // Check Firebase configuration
     if (!isFirebaseConfigured()) {
       setSubmitError(
-        isRtl
-          ? 'تعذر إرسال الطلب: لم يتم ضبط إعدادات Firebase بعد. يرجى تزويد المتغير VITE_FIREBASE_API_KEY.'
-          : 'Impossible d\'envoyer : Firebase n\'est pas configuré. Veuillez définir VITE_FIREBASE_API_KEY.'
+        L('تعذر إرسال الطلب: لم يتم ضبط إعدادات Firebase بعد. يرجى تزويد المتغير VITE_FIREBASE_API_KEY.', 'Impossible d\'envoyer : Firebase n\'est pas configuré. Veuillez définir VITE_FIREBASE_API_KEY.', "Unable to send: Firebase is not configured. Please set VITE_FIREBASE_API_KEY.")
       );
       return;
     }
@@ -175,7 +185,7 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
     setFormErrors({});
     setIsSubmitting(true);
     setUploadStatusText(
-      isRtl ? 'جارٍ رفع الصور إلى Cloudinary...' : 'Téléversement des photos vers Cloudinary...'
+      L('جارٍ رفع الصور إلى Cloudinary...', 'Téléversement des photos vers Cloudinary...', "Uploading photos...")
     );
 
     try {
@@ -185,23 +195,19 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
         filesToUpload,
         (completed, total) => {
           setUploadStatusText(
-            isRtl
-              ? `جارٍ رفع الصور (${completed}/${total})...`
-              : `Téléversement des images (${completed}/${total})...`
+            L(`جارٍ رفع الصور (${completed}/${total})...`, `Téléversement des images (${completed}/${total})...`, `Uploading images (${completed}/${total})...`)
           );
         }
       );
 
       // 2. Save submission in Firestore
       setUploadStatusText(
-        isRtl ? 'جارٍ حفظ تفاصيل الطلب في Firestore...' : 'Enregistrement de la proposition...'
+        L('جارٍ حفظ تفاصيل الطلب في Firestore...', 'Enregistrement de la proposition...', "Saving your proposal...")
       );
 
       const selectedCat = CATEGORIES_DATA.find((c) => c.id === categoryId);
       const catTitle = selectedCat
-        ? lang === 'ar'
-          ? selectedCat.titleAr
-          : selectedCat.titleFr
+        ? getCategoryText(selectedCat, lang).title
         : categoryId;
 
       const newSubmission = await StorageService.addSubmission({
@@ -229,13 +235,12 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
       setCategoryId('');
       setDescription('');
       setExpectedPrice('');
+      setConsent(false);
     } catch (err: any) {
       console.error('Submission failed:', err);
       setSubmitError(
         err?.message ||
-          (isRtl
-            ? 'حدث خطأ أثناء معالجة طلبك وحفظه. يرجى التأكد من اتصال الإنترنت والمحاولة مرة أخرى.'
-            : 'Une erreur est survenue lors de l\'enregistrement de votre demande.')
+          (L('حدث خطأ أثناء معالجة طلبك وحفظه. يرجى التأكد من اتصال الإنترنت والمحاولة مرة أخرى.', 'Une erreur est survenue lors de l\'enregistrement de votre demande.', "An error occurred while processing your request. Please check your connection and try again."))
       );
     } finally {
       setIsSubmitting(false);
@@ -246,9 +251,11 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
   // Pre-filled WhatsApp message for reference follow up
   const getSuccessWhatsAppLink = (refCode: string) => {
     const text =
-      lang === 'ar'
-        ? `السلام عليكم مول البزار، لقد أرسلت للتو طلباً لتقييم مقتنيات قديمة عبر الموقع برقم المرجع: [${refCode}]. المرجو الاطلاع عليه.`
-        : `Bonjour Moul LBazar, je viens de soumettre un objet ancien pour estimation sur votre site avec la référence : [${refCode}]. Merci de bien vouloir l'examiner.`;
+      L(
+        `السلام عليكم مول البزار، لقد أرسلت للتو طلباً لتقييم مقتنيات قديمة عبر الموقع برقم المرجع: [${refCode}]. المرجو الاطلاع عليه.`,
+        `Bonjour Moul LBazar, je viens de soumettre un objet ancien pour estimation sur votre site avec la référence : [${refCode}]. Merci de bien vouloir l'examiner.`,
+        `Hello Moul LBazar, I have just submitted an old item for appraisal on your website with reference: [${refCode}]. Please have a look.`
+      );
     return `${OFFICIAL_CONTACT.whatsAppUrl}?text=${encodeURIComponent(text)}`;
   };
 
@@ -259,7 +266,7 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
         <div className="text-center max-w-3xl mx-auto mb-14">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#B08A45]/20 border border-[#B08A45]/40 text-xs sm:text-sm font-bold text-[#D4AF37] mb-3">
             <Sparkles className="w-4 h-4 text-[#D4AF37]" />
-            <span>{isRtl ? 'عرض مباشر ومجاني' : 'Proposition Directe & Gratuite'}</span>
+            <span>{L('عرض مباشر ومجاني', 'Proposition Directe & Gratuite', "Direct & Free Proposal")}</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold font-heritage text-[#F5EFE3] mb-4">
             {t.submitSection.title}
@@ -276,7 +283,7 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
             <div className="mb-6 p-4 rounded-xl bg-red-950/80 border border-red-500/50 text-red-200 text-sm flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="font-semibold">{isRtl ? 'فشل إرسال الطلب' : 'Échec de l\'envoi'}</p>
+                <p className="font-semibold">{L('فشل إرسال الطلب', 'Échec de l\'envoi', "Submission failed")}</p>
                 <p className="text-xs text-red-300 mt-1">{submitError}</p>
               </div>
             </div>
@@ -322,7 +329,7 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
                   </option>
                   {MOROCCAN_CITIES.map((c, idx) => (
                     <option key={idx} value={c} className="bg-[#2D1E18] text-white">
-                      {c}
+                      {getCityLabel(c, lang)}
                     </option>
                   ))}
                 </select>
@@ -378,11 +385,11 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
                   </option>
                   {CATEGORIES_DATA.map((cat) => (
                     <option key={cat.id} value={cat.id} className="bg-[#2D1E18] text-white">
-                      {lang === 'ar' ? cat.titleAr : cat.titleFr}
+                      {getCategoryText(cat, lang).title}
                     </option>
                   ))}
                   <option value="other" className="bg-[#2D1E18] text-white">
-                    {isRtl ? 'تحف ومقتنيات أخرى متنوعة' : 'Autres curiosités & antiquités'}
+                    {L('تحف ومقتنيات أخرى متنوعة', 'Autres curiosités & antiquités', "Other curiosities & antiques")}
                   </option>
                 </select>
                 {formErrors.categoryId && (
@@ -392,6 +399,20 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
                   </p>
                 )}
               </div>
+            </div>
+
+            {/* Honeypot field (hidden from humans) */}
+            <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}>
+              <label>
+                Website
+                <input
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                />
+              </label>
             </div>
 
             {/* Expected Price (Optional) */}
@@ -415,6 +436,7 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
               </label>
               <textarea
                 rows={4}
+                maxLength={3000}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={t.submitSection.descPlaceholder}
@@ -505,6 +527,36 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
             <div className="bg-[#2D1E18]/60 rounded-xl p-3 border border-[#B08A45]/20 flex items-center gap-2 text-xs text-[#D9C8A9]">
               <Lock className="w-4 h-4 text-[#D4AF37] shrink-0" />
               <span>{t.submitSection.privacyNote}</span>
+            </div>
+
+            {/* Privacy consent */}
+            <div>
+              <label className="flex items-start gap-2 text-xs sm:text-sm text-[#D9C8A9] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={consent}
+                  onChange={(e) => setConsent(e.target.checked)}
+                  className="mt-1 w-4 h-4 accent-[#B08A45] shrink-0"
+                />
+                <span>
+                  {L('أوافق على ', "J'accepte la ", "I accept the ")}
+                  <a
+                    href="/privacy.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#D4AF37] underline hover:text-white"
+                  >
+                    {L('سياسة الخصوصية', 'politique de confidentialité', "privacy policy")}
+                  </a>
+                  {L(' ومعالجة بياناتي لغرض تقييم طلبي.', ' et au traitement de mes données pour l\'estimation de ma demande.', " and the processing of my data to appraise my request.")}
+                </span>
+              </label>
+              {formErrors.consent && (
+                <p className="mt-1 text-xs text-red-400 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  <span>{formErrors.consent}</span>
+                </p>
+              )}
             </div>
 
             {/* Submit Button */}
