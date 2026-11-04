@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { CATEGORIES_DATA, OFFICIAL_CONTACT } from '../translations';
+import { CATEGORIES_DATA, OFFICIAL_CONTACT, getCategoryText } from '../translations';
 import { MessageCircle, Sparkles, HelpCircle, ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface CategoriesProps {
@@ -8,12 +8,14 @@ interface CategoriesProps {
 }
 
 export const Categories: React.FC<CategoriesProps> = ({ onSelectCategoryForForm }) => {
-  const { lang, t, isRtl } = useLanguage();
+  const { lang, t, isRtl, L } = useLanguage();
 
   const handleInquireCategory = (catTitle: string) => {
-    const text = lang === 'ar'
-      ? `السلام عليكم، عندي قطعة من صنف "${catTitle}" وبغيت نقترحها عليكم للتقييم والبيع.`
-      : `Bonjour, j'ai un objet de la catégorie "${catTitle}" et je souhaite vous le proposer pour estimation et vente.`;
+    const text = L(
+      `السلام عليكم، عندي قطعة من صنف "${catTitle}" وبغيت نقترحها عليكم للتقييم والبيع.`,
+      `Bonjour, j'ai un objet de la catégorie "${catTitle}" et je souhaite vous le proposer pour estimation et vente.`,
+      `Hello, I have an item in the "${catTitle}" category and would like to submit it to you for appraisal and sale.`
+    );
     const url = `${OFFICIAL_CONTACT.whatsAppUrl}?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -39,9 +41,7 @@ export const Categories: React.FC<CategoriesProps> = ({ onSelectCategoryForForm 
         {/* Categories Grid (9 cards) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-7xl mx-auto mb-16">
           {CATEGORIES_DATA.map((cat, index) => {
-            const title = lang === 'ar' ? cat.titleAr : cat.titleFr;
-            const desc = lang === 'ar' ? cat.descAr : cat.descFr;
-            const examples = lang === 'ar' ? cat.examplesAr : cat.examplesFr;
+            const { title, desc, examples } = getCategoryText(cat, lang);
 
             return (
               <div
@@ -107,7 +107,7 @@ export const Categories: React.FC<CategoriesProps> = ({ onSelectCategoryForForm 
                       onClick={() => onSelectCategoryForForm(cat.id)}
                       className="w-full py-2 text-center text-xs text-[#D9C8A9] hover:text-[#D4AF37] flex items-center justify-center gap-1 transition-colors"
                     >
-                      <span>{isRtl ? 'عرض هذا الصنف في الاستمارة' : 'Proposer cet objet dans le formulaire'}</span>
+                      <span>{L('عرض هذا الصنف في الاستمارة', 'Proposer cet objet dans le formulaire', "Submit this item in the form")}</span>
                       {isRtl ? <ChevronLeft className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                     </button>
                   )}
@@ -135,9 +135,11 @@ export const Categories: React.FC<CategoriesProps> = ({ onSelectCategoryForForm 
 
           <a
             href={`${OFFICIAL_CONTACT.whatsAppUrl}?text=${encodeURIComponent(
-              lang === 'ar'
-                ? 'السلام عليكم، عندي قطعة قديمة فريدة من نوعها وبغيت نستفسر عليها بخصوص التقييم.'
-                : 'Bonjour, je possède une pièce ancienne unique et souhaite avoir votre avis pour une évaluation.'
+              L(
+                'السلام عليكم، عندي قطعة قديمة فريدة من نوعها وبغيت نستفسر عليها بخصوص التقييم.',
+                'Bonjour, je possède une pièce ancienne unique et souhaite avoir votre avis pour une évaluation.',
+                'Hello, I own a unique old piece and would like your opinion for an appraisal.'
+              )
             )}`}
             target="_blank"
             rel="noopener noreferrer"
