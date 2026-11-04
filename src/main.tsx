@@ -2,6 +2,12 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 
+// تعطيل المؤثرات اللي كتوقف الرسم فـ بعض التليفونات
+const fixStyle = document.createElement('style');
+fixStyle.textContent =
+  '*,*::before,*::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;}';
+document.head.appendChild(fixStyle);
+
 const rootElement = document.getElementById('root');
 
 if (!rootElement) {
@@ -67,25 +73,35 @@ import('./App')
     root.render(errorBox('IMPORT ERROR (خطأ أثناء تحميل الكود):', err));
   });
 
-// DEBUG: نافذة alert بعد 6 ثواني
+// DEBUG: معلومات عن العنصر اللي فوق الشاشة (بعد 6 ثواني)
 setTimeout(() => {
-  const r = document.getElementById('root');
+  const pick = (x: number, y: number) => {
+    const el = document.elementFromPoint(x, y) as HTMLElement | null;
+    if (!el) return 'none';
+    const cs = getComputedStyle(el);
+    return (
+      el.tagName +
+      ' | ' +
+      String(el.className).slice(0, 60) +
+      ' | bg ' +
+      cs.backgroundColor +
+      ' | pos ' +
+      cs.position
+    );
+  };
+  const w = window.innerWidth;
+  const h = window.innerHeight;
   const header = document.querySelector('header');
-  const h1 = document.querySelector('h1');
-  const cs = h1 ? getComputedStyle(h1) : null;
-  const msg =
-    'DEBUG\n' +
-    'root children: ' + (r ? r.childElementCount : 'no root') + '\n' +
-    'text length: ' + (r ? (r.innerText || '').length : 0) + '\n' +
-    'header found: ' + !!header + '\n' +
-    'header height: ' + (header ? Math.round(header.getBoundingClientRect().height) : 0) + '\n' +
-    'page height: ' + document.documentElement.scrollHeight + '\n' +
-    'scrollY: ' + window.scrollY + '\n' +
-    'body bg: ' + getComputedStyle(document.body).backgroundColor + '\n' +
-    'h1 color: ' + (cs ? cs.color : '-') + '\n' +
-    'h1 fill: ' + (cs ? (cs as any).webkitTextFillColor : '-') + '\n' +
-    'h1 opacity: ' + (cs ? cs.opacity : '-') + '\n' +
-    'h1 visibility: ' + (cs ? cs.visibility : '-') + '\n' +
-    'UA: ' + navigator.userAgent;
-  alert(msg);
+  const hcs = header ? getComputedStyle(header) : null;
+  alert(
+    'DEBUG2\n' +
+      'top: ' + pick(w / 2, 20) + '\n' +
+      'mid: ' + pick(w / 2, h / 2) + '\n' +
+      'header bg: ' + (hcs ? hcs.backgroundColor : '-') + '\n' +
+      'header pos: ' + (hcs ? hcs.position : '-') + '\n' +
+      'hero bg: ' +
+      (document.getElementById('home')
+        ? getComputedStyle(document.getElementById('home') as HTMLElement).backgroundColor
+        : '-')
+  );
 }, 6000);
