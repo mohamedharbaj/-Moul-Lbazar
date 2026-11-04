@@ -7,6 +7,8 @@ interface LanguageContextType {
   setLang: (lang: Language) => void;
   t: typeof TRANSLATIONS.ar;
   isRtl: boolean;
+  /** Pick a value by language: L(arabic, french, english) */
+  L: <T,>(ar: T, fr: T, en: T) => T;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -14,7 +16,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [lang, setLangState] = useState<Language>(() => {
     const saved = localStorage.getItem('moullbazar_lang') as Language;
-    return saved === 'fr' ? 'fr' : 'ar'; // Default Arabic
+    return saved === 'fr' || saved === 'en' ? saved : 'ar'; // Default Arabic
   });
 
   const setLang = (newLang: Language) => {
@@ -23,7 +25,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const isRtl = lang === 'ar';
-  const t = TRANSLATIONS[lang];
+  const t = TRANSLATIONS[lang] as typeof TRANSLATIONS.ar;
+  const L = <T,>(ar: T, fr: T, en: T): T => (lang === 'ar' ? ar : lang === 'fr' ? fr : en);
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -32,7 +35,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [lang, isRtl, t]);
 
   return (
-    <LanguageContext.Provider value={{ lang, setLang, t, isRtl }}>
+    <LanguageContext.Provider value={{ lang, setLang, t, isRtl, L }}>
       {children}
     </LanguageContext.Provider>
   );
