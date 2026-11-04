@@ -17,7 +17,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@500;600;700;800&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
   </head>
   <body class="bg-[#F5EFE3] text-[#292521] antialiased selection:bg-[#B08A45] selection:text-white">
-    <div id="root"></div>
+    <div id="root">
+      <div id="app-startup-status" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;background:#F5EFE3;color:#3B2921;font-family:system-ui,sans-serif;direction:rtl">
+        جار تحميل موقع مول البزار...
+      </div>
+    </div>
     <script>
       function showErr(msg) {
         var r = document.getElementById('root') || document.body;
@@ -34,6 +38,16 @@
       });
     </script>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Resource-loading errors do not reliably bubble to window.error.
+      // Listen directly to the Vite module script so a failed app bundle is visible.
+      document.querySelectorAll('script[type="module"][src]').forEach(function (script) {
+        script.addEventListener('error', function () {
+          showErr('MODULE LOAD ERROR: تعذر تحميل ملف تشغيل الموقع: ' + script.src +
+            '\nتحقق من ملفات النشر وطلبات JavaScript في Cloudflare Pages.');
+        });
+      });
+    </script>
   </body>
 </html>
 
