@@ -402,7 +402,7 @@ export const SubmitItemSection: React.FC<SubmitItemSectionProps> = ({
             </div>
 
             {/* Honeypot field (hidden from humans) */}
-            <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}>
+            <div aria-hidden="true" style={{ position: 'absolute', top: 0, insetInlineStart: 0, width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none', clipPath: 'inset(50%)' }}>
               <label>
                 Website
                 <input
