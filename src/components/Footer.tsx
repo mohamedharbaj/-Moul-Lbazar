@@ -5,7 +5,7 @@ import {
   MessageCircle,
   Facebook,
   Phone,
-  Shield,
+  UserCog,
   Sparkles,
   ArrowUp,
   Heart,
@@ -28,7 +28,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin, onOpenSubmit }) => 
   )}`;
 
   return (
-    <footer className="bg-[#231713] text-[#D9C8A9] border-t-2 border-[#B08A45]/40 pt-16 pb-12 relative overflow-hidden">
+    <footer className="bg-[#231713] text-[#D9C8A9] border-t-2 border-[#B08A45]/40 pt-16 pb-12 max-sm:pb-28 relative overflow-hidden">
       {/* Decorative ambient subtle Moroccan background */}
       <div className="absolute inset-0 opacity-10 pointer-events-none moroccan-pattern-dark"></div>
 
@@ -130,7 +130,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin, onOpenSubmit }) => 
                   onClick={onOpenAdmin}
                   className="flex items-center gap-1.5 text-[#B08A45] hover:text-[#D4AF37] transition-colors"
                 >
-                  <Shield className="w-3.5 h-3.5" />
+                  <UserCog className="w-4 h-4" />
                   <span>{t.nav.admin}</span>
                 </button>
               </li>
