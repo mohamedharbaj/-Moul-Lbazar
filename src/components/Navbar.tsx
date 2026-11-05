@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { OFFICIAL_CONTACT, getDefaultWhatsAppMessage } from '../translations';
 import { Language } from '../types';
-import { MessageCircle, Menu, X, Shield, Globe, Sparkles } from 'lucide-react';
+import { MessageCircle, Menu, X, UserCog, Globe, Sparkles } from 'lucide-react';
 
 interface NavbarProps {
   onOpenSubmit: () => void;
@@ -14,7 +14,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSubmit, onOpenAdmin }) => 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const LANGS: { code: Language; label: string }[] = [
-    { code: 'ar', label: 'عر' },
+    { code: 'ar', label: 'AR' },
     { code: 'fr', label: 'FR' },
     { code: 'en', label: 'EN' },
   ];
@@ -70,7 +70,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSubmit, onOpenAdmin }) => 
               className="flex items-center gap-1 text-xs text-[#D9C8A9]/80 hover:text-[#B08A45] transition-colors"
               title={t.nav.admin}
             >
-              <Shield className="w-3 h-3 text-[#B08A45]" />
+              <UserCog className="w-4 h-4 text-[#B08A45]" />
               <span className="hidden md:inline">{t.nav.admin}</span>
             </button>
           </div>
@@ -272,7 +272,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSubmit, onOpenAdmin }) => 
                   }}
                   className="flex items-center gap-1 text-[#B08A45] underline"
                 >
-                  <Shield className="w-3 h-3" />
+                  <UserCog className="w-4 h-4" />
                   <span>{t.nav.admin}</span>
                 </button>
               </div>
