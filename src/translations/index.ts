@@ -25,7 +25,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
     examplesAr: ['الريال الحسني الفضي', 'أوراق نقدية عهد الحماية', 'الدراهم والفلوس العتيقة', 'عملات تذكارية قديمة'],
     examplesFr: ['Rials Hassani en argent', 'Billets d\'époque du Protectorat', 'Dirhams et felous antiques', 'Pièces commémoratives'],
     examplesEn: ["Silver Hassani rials", "Protectorate-era banknotes", "Antique dirhams and felous", "Old commemorative coins"],
-    image: 'https://images.unsplash.com/photo-1621416894569-0f39ed31d247?auto=format&fit=crop&w=800&q=80',
+    image: '/assets/categories/coins.webp',
     iconName: 'Coins',
   },
   {
@@ -39,7 +39,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
     examplesAr: ['صناديق خشبية عتيقة', 'فخار فاسي قديم بألوان طبيعية', 'أقفال ومفاتيح تراثية', 'تحف قصبات الجنوب'],
     examplesFr: ['Coffres en bois sculpté', 'Céramiques de Fès anciennes', 'Serrures forgées d\'époque', 'Objets de kasbahs'],
     examplesEn: ["Carved wooden chests", "Old Fes ceramics", "Antique locks and keys", "Kasbah objects"],
-    image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80',
+    image: '/assets/categories/heritage.webp',
     iconName: 'Landmark',
   },
   {
@@ -53,7 +53,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
     examplesAr: ['صواني نحاسية منقوشة يدوياً', 'براريد عتيقة وأطقم شاي', 'مباخر وقناديل نحاسية', 'طناجر وقدور قديمة'],
     examplesFr: ['Grands plateaux ciselés', 'Théières et services anciens', 'Majmars et brûle-parfums', 'Chaudrons martelés'],
     examplesEn: ["Hand-engraved copper trays", "Antique teapots and tea sets", "Incense burners and copper lanterns", "Old pots and cauldrons"],
-    image: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=800&q=80',
+    image: '/assets/categories/copper.webp',
     iconName: 'Flame',
   },
   {
@@ -67,7 +67,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
     examplesAr: ['ساعات جيب ميكانيكية بسلسلة', 'ساعات حائط بندول خشبية', 'ساعات يد كلاسيكية نادرة', 'ساعات مكتبية نحاسية'],
     examplesFr: ['Montres à gousset mécaniques', 'Horloges à balancier murales', 'Montres vintage suisses', 'Pendules de table'],
     examplesEn: ["Mechanical pocket watches with chain", "Wooden pendulum wall clocks", "Rare classic wristwatches", "Brass desk clocks"],
-    image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80',
+    image: '/assets/categories/clocks.webp',
     iconName: 'Clock',
   },
   {
@@ -81,7 +81,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
     examplesAr: ['كاميرات المنفاخ العتيقة', 'كاميرات الأفلام الكلاسيكية', 'عدسات تصوير قديمة', 'آلات تحميض وأكسسوارات'],
     examplesFr: ['Appareils photo à soufflet', 'Boîtiers argentiques rétro', 'Optiques et objectifs anciens', 'Accessoires photo vintage'],
     examplesEn: ["Antique bellows cameras", "Classic film cameras", "Old lenses and optics", "Vintage photo accessories"],
-    image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80',
+    image: '/assets/categories/cameras.webp',
     iconName: 'Camera',
   },
   {
@@ -95,7 +95,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
     examplesAr: ['هواتف القرص الدوار الكلاسيكية', 'هواتف حائطية بالمانيفيل', 'راديوهات عتيقة بالصمامات', 'غراموفونات ومشغلات الأسطوانات'],
     examplesFr: ['Téléphones à cadran rotatif', 'Téléphones d\'époque en bois', 'Postes de radio à lampes', 'Gramophones et phonographes'],
     examplesEn: ["Classic rotary dial phones", "Wooden vintage wall phones", "Old tube radios", "Gramophones and phonographs"],
-    image: 'https://images.unsplash.com/photo-1520923642038-b4259acecbd7?auto=format&fit=crop&w=800&q=80',
+    image: '/assets/categories/phones.webp',
     iconName: 'PhoneCall',
   },
   {
@@ -109,7 +109,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
     examplesAr: ['خلالات فضية قديمة (تزرزيت)', 'عقود العنبر واللوبان الحر', 'خناجر مغربية مذهبة (الكمية)', 'منسوجات وزرابي قديمة نادرة'],
     examplesFr: ['Fibules en argent (tizerzai)', 'Colliers de loubane et ambre', 'Poignards koummya ciselés', 'Tapis et tissages d\'époque'],
     examplesEn: ["Old silver fibulae (tizerzai)", "Amber and loubane necklaces", "Engraved koummya daggers", "Rare old rugs and weavings"],
-    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
+    image: '/assets/categories/amazigh.webp',
     iconName: 'Gem',
   },
   {
@@ -123,7 +123,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
     examplesAr: ['مخطوطات إسلامية وعلمية قديمة', 'عقود وظهائر شريفة مختومة', 'بطاقات بريدية للمدن المغربية', 'صور فوتوغرافية تؤرخ للمغرب القديم'],
     examplesFr: ['Manuscrits anciens calligraphiés', 'Actes et dahirs cachetés', 'Cartes postales coloniales', 'Photos historiques d\'époque'],
     examplesEn: ["Old calligraphed manuscripts", "Sealed deeds and dahirs", "Colonial-era postcards", "Historical period photographs"],
-    image: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=800&q=80',
+    image: '/assets/categories/documents.webp',
     iconName: 'Scroll',
   },
   {
@@ -137,7 +137,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
     examplesAr: ['إسطرلاب وبوصلات بحرية قديمة', 'موازين الصاغة النحاسية الدقيقة', 'آلات كاتبة ميكانيكية كلاسيكية', 'سيوف ودروع تاريخية تقليدية'],
     examplesFr: ['Astrolabes et boussoles marines', 'Balances de précision en cuivre', 'Machines à écrire mécaniques', 'Armes blanches de parade'],
     examplesEn: ["Astrolabes and marine compasses", "Brass precision scales", "Mechanical typewriters", "Ceremonial bladed weapons"],
-    image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80',
+    image: '/assets/categories/historical.webp',
     iconName: 'Sparkles',
   },
 ];
@@ -381,7 +381,7 @@ export const TRANSLATIONS = {
       topCategories: 'أهم الأصناف',
       contactInfo: 'معلومات التواصل المعتمدة',
       rights: 'جميع الحقوق محفوظة © لمول البزار (Moul LBazar). يمنع استخدام الاسم التجاري أو المحتوى دون إذن مسبق.',
-      madeForMorocco: 'مملكة المغرب 🇲🇦 | خدمة في جميع المدن وخارج المملكة',
+      madeForMorocco: 'المملكة المغربية 🇲🇦 | خدماتنا متاحة في جميع أنحاء المملكة المغربية وعلى المستوى الدولي.',
     },
   },
   fr: {
