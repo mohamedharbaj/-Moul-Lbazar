@@ -14,7 +14,7 @@ export const FloatingWhatsApp: React.FC = () => {
   return (
     <aside
       aria-label="WhatsApp Contact"
-      className={`fixed bottom-6 ${isRtl ? 'left-6' : 'right-6'} z-40 flex items-center gap-3`}
+      className={`fixed bottom-4 sm:bottom-6 ${isRtl ? 'left-4 sm:left-6' : 'right-4 sm:right-6'} z-40 flex items-center gap-3`}
     >
       {/* Tooltip bubble */}
       {showTooltip && (
@@ -39,14 +39,14 @@ export const FloatingWhatsApp: React.FC = () => {
         href={whatsAppDirectUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="relative group w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#25D366] hover:bg-[#20BA59] text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-all duration-300 active:scale-95"
+        className="relative group w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[#25D366] hover:bg-[#20BA59] text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-all duration-300 active:scale-95"
         title="WhatsApp Direct - Moul LBazar"
         aria-label="تواصل مع مول البزار عبر واتساب"
       >
         {/* Pulsing ring */}
         <span className="absolute -inset-1 rounded-full bg-[#25D366] opacity-75 animate-ping pointer-events-none"></span>
 
-        <MessageCircle className="w-7 h-7 sm:w-8 sm:h-8 fill-white relative z-10" />
+        <MessageCircle className="w-6 h-6 sm:w-8 sm:h-8 fill-white relative z-10" />
 
         {/* Online Indicator Badge */}
         <span className="absolute top-0 right-0 w-4 h-4 bg-white border-2 border-[#25D366] rounded-full flex items-center justify-center">
